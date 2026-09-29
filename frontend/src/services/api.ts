@@ -32,10 +32,35 @@ export interface SchedulingResponse {
   events: SimulationEvent[];
 }
 export const simulateScheduling = (req: SchedulingRequest) =>
-  api.post<SchedulingResponse>('/scheduling/simulate', req).then(r => r.data);
+  api.post<SchedulingResponse>('/scheduling/simulate', {
+    processes: req.processes.map(p => ({
+      pid: p.pid,
+      name: p.name,
+      arrival_time: p.arrivalTime,
+      burst_time: p.burstTime,
+      priority: p.priority,
+      io_burst: p.ioBurst,
+    })),
+    config: req.config,
+  }).then(r => r.data);
 
-export const compareScheduling = (req: { processes: SchedulingRequest['processes']; configs: SchedulingConfig[] }) =>
-  api.post<SchedulingResponse[]>('/scheduling/compare', req).then(r => r.data);
+export const compareScheduling = (
+  req: {
+    processes: SchedulingRequest['processes'];
+    configs: SchedulingConfig[];
+  }
+) =>
+  api.post<SchedulingResponse[]>('/scheduling/compare', {
+    processes: req.processes.map(p => ({
+      pid: p.pid,
+      name: p.name,
+      arrival_time: p.arrivalTime,
+      burst_time: p.burstTime,
+      priority: p.priority,
+      io_burst: p.ioBurst,
+    })),
+    configs: req.configs,
+  }).then(r => r.data);
 
 // ── Page Replacement ────────────────────────────────────────
 export const simulatePageReplacement = (req: {
