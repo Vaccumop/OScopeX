@@ -52,8 +52,8 @@ const ALGO_OPTIONS: { value: SchedulingAlgorithm; label: string }[] = [
 
 const GANTT_COLORS = ['#22d3ee', '#22c55e', '#a855f7', '#f59e0b', '#f43f5e', '#38bdf8', '#4ade80', '#fb923c'];
 
-function pidColor(pid: string): string {
-  const n = parseInt(pid.replace(/\D/g, ''), 10) || 0;
+function pidColor(pid: string | number): string {
+  const n = parseInt(String(pid).replace(/\D/g, ''), 10) || 0;
   return GANTT_COLORS[n % GANTT_COLORS.length];
 }
 
@@ -68,7 +68,7 @@ function GanttChart({ gantt }: { gantt: GanttSlot[] }) {
         <div className="flex h-10 rounded overflow-hidden border border-white/10">
           {gantt.map((slot, i) => {
             const width = ((slot.end - slot.start) / totalTime) * 100;
-            const color = slot.pid === 'IDLE' ? '#1e293b' : pidColor(slot.pid);
+            const color = String(slot.pid) === 'IDLE' ? '#1e293b' : pidColor(slot.pid);
             return (
               <motion.div
                 key={i}
@@ -79,7 +79,7 @@ function GanttChart({ gantt }: { gantt: GanttSlot[] }) {
                 style={{ width: `${width}%`, background: color + '44', borderColor: color, borderWidth: 1, color }}
                 title={`${slot.pid}: ${slot.start}→${slot.end}`}
               >
-                {width > 3 && slot.pid}
+                {width > 3 && String(slot.pid)}
               </motion.div>
             );
           })}
