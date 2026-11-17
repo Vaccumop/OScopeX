@@ -1,100 +1,104 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Bell, Activity, Cpu, HardDrive, Users } from 'lucide-react';
+import {
+  Search,
+  Flame,
+  Award,
+  FlaskConical,
+  RotateCcw,
+  BookOpen,
+} from 'lucide-react';
+import { useLearningStore } from '@/simulation/learningStore';
 import { useSimulationStore } from '@/simulation/store';
-import { cn } from '@/utils';
+import GlobalSearchModal from '@/components/GlobalSearchModal';
+import DailyChallengeModal from '@/components/DailyChallengeModal';
 
 export default function TopBar() {
-  const { state, resetSimulation } = useSimulationStore();
-
-  const cpuUtil = state.cpu.utilization;
-  const memUtil = state.memory.totalFrames > 0
-    ? (state.memory.usedFrames / state.memory.totalFrames) * 100
-    : 0;
-  const processCount = state.processes.length;
-  const simTime = state.currentTime.toFixed(1);
-  const simStatus = state.status;
-
-  const statusColor = {
-    idle: 'text-slate-400',
-    running: 'text-green-400',
-    paused: 'text-amber-400',
-    completed: 'text-cyan-400',
-  }[simStatus];
-
-  const statusDot = {
-    idle: 'bg-slate-400',
-    running: 'bg-green-400 animate-pulse',
-    paused: 'bg-amber-400',
-    completed: 'bg-cyan-400',
-  }[simStatus];
+  const navigate = useNavigate();
+  const { profile } = useLearningStore();
+  const { resetSimulation } = useSimulationStore();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [dailyOpen, setDailyOpen] = useState(false);
 
   return (
-    <header className="h-[60px] bg-[#080e1c] border-b border-cyan-500/10 flex items-center px-4 gap-4 flex-shrink-0">
-      {/* Status */}
-      <div className="flex items-center gap-2">
-        <div className={cn('w-2 h-2 rounded-full', statusDot)} />
-        <span className={cn('text-xs font-medium uppercase tracking-wider', statusColor)}>
-          {simStatus}
-        </span>
-      </div>
+    <>
+      <header className="h-[64px] bg-[#080e1c] border-b border-cyan-500/10 flex items-center justify-between px-4 sm:px-6 gap-3 flex-shrink-0 z-20 select-none">
+        {/* Left: Quick Search Bar */}
+        <div className="flex items-center gap-3 flex-1 max-w-md">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 text-xs text-slate-400 transition-all group"
+          >
+            <div className="flex items-center gap-2">
+              <Search size={14} className="text-cyan-400 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Search lessons, labs, concepts, formulas...</span>
+            </div>
+            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-slate-300 font-mono">
+              Ctrl+K
+            </kbd>
+          </button>
+        </div>
 
-      <div className="h-4 w-px bg-cyan-500/20" />
+        {/* Right: Student Profile Metrics & Actions */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Daily Streak */}
+          <button
+            onClick={() => setDailyOpen(true)}
+            title="Click to solve today's challenge"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-amber-300 text-xs font-semibold transition-all group"
+          >
+            <Flame size={15} className="text-amber-400 group-hover:scale-125 transition-transform animate-pulse" />
+            <span>{profile.streakDays}d Streak</span>
+          </button>
 
-      {/* Sim time */}
-      <div className="flex items-center gap-1.5">
-        <Activity size={12} className="text-cyan-400/60" />
-        <span className="text-xs text-slate-400">
-          Sim Time: <span className="text-cyan-400 font-mono">{simTime}ms</span>
-        </span>
-      </div>
+          {/* XP & Level */}
+          <div
+            onClick={() => navigate('/progress')}
+            title="View learning progress and level"
+            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs font-medium cursor-pointer hover:bg-cyan-500/20 transition-all"
+          >
+            <Award size={15} className="text-cyan-400" />
+            <span>
+              Level {profile.level} <span className="text-slate-400 font-normal">({profile.xp} XP)</span>
+            </span>
+          </div>
 
-      {/* CPU */}
-      <div className="flex items-center gap-1.5">
-        <Cpu size={12} className="text-blue-400/60" />
-        <span className="text-xs text-slate-400">
-          CPU: <span className={cn('font-mono', cpuUtil > 90 ? 'text-red-400' : cpuUtil > 70 ? 'text-amber-400' : 'text-blue-400')}>
-            {cpuUtil.toFixed(1)}%
-          </span>
-        </span>
-      </div>
+          <div className="h-5 w-px bg-white/10 hidden sm:block" />
 
-      {/* Memory */}
-      <div className="flex items-center gap-1.5">
-        <HardDrive size={12} className="text-purple-400/60" />
-        <span className="text-xs text-slate-400">
-          Mem: <span className={cn('font-mono', memUtil > 90 ? 'text-red-400' : memUtil > 70 ? 'text-amber-400' : 'text-purple-400')}>
-            {memUtil.toFixed(1)}%
-          </span>
-        </span>
-      </div>
+          {/* Quick Labs Link */}
+          <button
+            onClick={() => navigate('/labs')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-[#080e1c] font-bold text-xs transition-all shadow-md shadow-cyan-500/15"
+          >
+            <FlaskConical size={14} />
+            <span className="hidden md:inline">Open</span> Labs
+          </button>
 
-      {/* Processes */}
-      <div className="flex items-center gap-1.5">
-        <Users size={12} className="text-green-400/60" />
-        <span className="text-xs text-slate-400">
-          Processes: <span className="text-green-400 font-mono">{processCount}</span>
-        </span>
-      </div>
+          {/* Courses Link */}
+          <button
+            onClick={() => navigate('/courses')}
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-medium transition-all"
+          >
+            <BookOpen size={14} className="text-emerald-400" />
+            <span>Curriculum</span>
+          </button>
 
-      <div className="flex-1" />
+          {/* Reset Sim button */}
+          <button
+            onClick={() => {
+              resetSimulation();
+            }}
+            title="Reset active simulation state"
+            className="p-2 rounded-xl bg-white/5 hover:bg-red-500/15 hover:border-red-500/30 border border-transparent text-slate-400 hover:text-red-400 transition-all"
+          >
+            <RotateCcw size={14} />
+          </button>
+        </div>
+      </header>
 
-      {/* Notifications */}
-      <button className="relative p-1.5 text-slate-400 hover:text-slate-200 transition-colors">
-        <Bell size={15} />
-        {state.events.length > 0 && (
-          <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-cyan-400 rounded-full" />
-        )}
-      </button>
-
-      {/* Reset */}
-      <button
-        onClick={resetSimulation}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all text-xs font-medium"
-      >
-        <RefreshCw size={12} />
-        Reset
-      </button>
-    </header>
+      {/* Global Modals */}
+      <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      <DailyChallengeModal isOpen={dailyOpen} onClose={() => setDailyOpen(false)} />
+    </>
   );
 }
